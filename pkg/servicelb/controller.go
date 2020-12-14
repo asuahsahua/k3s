@@ -319,6 +319,14 @@ func (h *handler) newDaemonSet(svc *core.Service) (*apps.DaemonSet, error) {
 
 	for _, port := range svc.Spec.Ports {
 		portName := fmt.Sprintf("lb-port-%d", port.Port)
+
+		var targetPort int32
+		if port.TargetPort.IntVal != 0 {
+			targetPort = port.TargetPort.IntVal
+		} else {
+			targetPort = port.Port
+		}
+
 		container := core.Container{
 			Name:            portName,
 			Image:           image,
@@ -342,7 +350,7 @@ func (h *handler) newDaemonSet(svc *core.Service) (*apps.DaemonSet, error) {
 				},
 				{
 					Name:  "DEST_PORT",
-					Value: strconv.Itoa(int(port.Port)),
+					Value: strconv.Itoa(int(targetPort)),
 				},
 				{
 					Name:  "DEST_IP",
